@@ -1,18 +1,26 @@
 from faker import Faker
 import random
+import time
 
-searchword = "foobabuschubdidududub"
+searchword = "foobabuschubdidududubfoobabuschubdidududub"
 
 def compute_prefix_function(pattern):
-    prefix = [0]
-    j = 0
-    for i in range(1, len(pattern)):
-        while j > 0 and pattern[j] != pattern[i]:
-            j = prefix[j - 1]
-        if pattern[j] == pattern[i]:
-            j += 1
-        prefix.append(j)
-    return prefix
+    m = len(pattern)
+    lps = [0] * m
+    length = 0
+    i = 1
+    while i < m:
+        if pattern[i] == pattern[length]:
+            length += 1
+            lps[i] = length
+            i += 1
+        else:
+            if length != 0:
+                length = lps[length - 1]
+            else:
+                lps[i] = 0
+                i += 1
+    return lps
 
 def KMP(text, pattern):
     prefix = compute_prefix_function(pattern)
@@ -71,11 +79,37 @@ def generate_lorem_ipsum(num_paragraphs):
     with open('input.txt', 'w') as file:
         file.write(' '.join(words))
 
+def average_timings(function, text, pattern, repetitions=100):
+    total_time = 0
+    for _ in range(repetitions):
+        start_time = time.time()
+        function(text, pattern)
+        total_time += (time.time() - start_time)
+    return total_time / repetitions
+
 if __name__ == "__main__":
-    generate_lorem_ipsum(9000000) #Benchmarking lol
+    num_paragraphs = 50000  # A number that is large but practical.
+    generate_lorem_ipsum(num_paragraphs)
     with open('input.txt', 'r') as file:
         text = file.read().strip()
 
-    print(KMP(text, searchword))
-    print(boyer_moore(text, searchword))
-    print(brute_force(text, searchword))
+    patterns = [
+        searchword,                        # original pattern
+        searchword[:int(len(searchword)/2)],  # half the length of the original pattern
+        searchword[:int(len(searchword)/4)],  # quarter the length
+        # ... add more patterns with varying lengths as needed
+    ]
+
+    repetitions = 100  # Number of repetitions for each pattern.
+
+    for pattern in patterns:
+        print(f"Searching for pattern of length {len(pattern)}")
+
+        kmp_average_time = average_timings(KMP, text, pattern, repetitions)
+        print(f"Average KMP time: {kmp_average_time} seconds")
+
+        bm_average_time = average_timings(boyer_moore, text, pattern, repetitions)
+        print(f"Average Boyer-Moore time: {bm_average_time} seconds")
+
+        bf_average_time = average_timings(brute_force, text, pattern, repetitions)
+        print(f"Average Brute Force time: {bf_average_time} seconds\n")
