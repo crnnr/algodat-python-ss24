@@ -1,4 +1,4 @@
-def sumsmallersquares(n):
+def sumsmallersquares(n=5):
     s = 0
     while n > 0:
         n = n - 1
