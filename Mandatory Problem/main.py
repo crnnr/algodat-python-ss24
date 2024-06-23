@@ -4,15 +4,14 @@ import random
 import time
 import csv
 import datetime
+import numpy as np
+import pandas as pd
 
-# Initialize logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Constants
 searchword = "foobabuschubdidududubfoobabuschubdidududub"
 three_word_pattern = "Match Multiword Strings!"
 
-# Set seeds for reproducibility
 random.seed(0)
 Faker.seed(0)
 
@@ -62,7 +61,7 @@ def boyer_moore(text, pattern):
     i = pattern_length - 1
     while i < text_length:
         j = pattern_length - 1
-        while text[i] == text[j]:
+        while text[i] == pattern[j]:
             if j == 0:
                 return i
             i -= 1
@@ -81,56 +80,56 @@ def brute_force(text, pattern):
             return i
     return -1
 
-def generate_lorem_ipsum(num_paragraphs, pattern, insert=True):
+def generate_search_text(num_paragraphs, pattern, insert=True):
     fake = Faker()
     paragraphs = [fake.paragraph() for _ in range(num_paragraphs)]
     text = ' '.join(paragraphs)
     if insert:
         words = text.split()
-        insert_position = random.randint(0, len(words) - 3)  # Adjust for three-word pattern
+        insert_position = random.randint(0, len(words) - 3)
         words.insert(insert_position, pattern)
         return ' '.join(words)
     return text
 
 def average_timings(function, text, pattern, repetitions=100):
-    total_time = 0
+    timings = []
     for _ in range(repetitions):
-        start_time = time.time()
+        start_time = time.perf_counter()
         function(text, pattern)
-        total_time += (time.time() - start_time)
-    return total_time / repetitions
+        elapsed = time.perf_counter() - start_time
+        timings.append(elapsed)
+    average_time = np.mean(timings)
+    min_time = np.min(timings)
+    max_time = np.max(timings)
+    std_dev = np.std(timings)
+    return average_time, min_time, max_time, std_dev
 
 if __name__ == "__main__":
-    num_paragraphs_list = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000]  # Different lengths of texts for basic testing
+    num_paragraphs_list = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000]
     pattern_lengths = [len(searchword), int(len(searchword)/2), int(len(searchword)/4), int(len(searchword)/8), len(three_word_pattern)]
 
-    repetitions = 100  # Number of repetitions for each pattern
+    repetitions = 100
 
-    with open('results.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Text Length', 'Pattern Length', 'Algorithm', 'Average Time (s)'])
+    results = []
 
-        for num_paragraphs in num_paragraphs_list:
-            text = generate_lorem_ipsum(num_paragraphs, three_word_pattern, insert=True)
-            print(f"Text length: {len(text)}")
-            print(f"Pattern length: {len(three_word_pattern)}")
-            print(f"Searchword length: {len(searchword)}")
-            print("timestamp:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            print("runtime started")
-            
-            for pattern_length in pattern_lengths:
-                if pattern_length == len(three_word_pattern):
-                    pattern = three_word_pattern
-                else:
-                    pattern = searchword[:pattern_length]
+    for num_paragraphs in num_paragraphs_list:
+        text = generate_search_text(num_paragraphs, three_word_pattern, insert=True)
+        text_length = len(text)
+        logging.info(f"Text length: {text_length}")
+        
+        for pattern_length in pattern_lengths:
+            if pattern_length == len(three_word_pattern):
+                pattern = three_word_pattern
+            else:
+                pattern = searchword[:pattern_length]
 
-                kmp_average_time = average_timings(KMP, text, pattern, repetitions)
-                bm_average_time = average_timings(boyer_moore, text, pattern, repetitions)
-                bf_average_time = average_timings(brute_force, text, pattern, repetitions)
+            kmp_times = average_timings(KMP, text, pattern, repetitions)
+            bm_times = average_timings(boyer_moore, text, pattern, repetitions)
+            bf_times = average_timings(brute_force, text, pattern, repetitions)
 
-                writer.writerow([len(text), len(pattern), 'KMP', kmp_average_time])
-                writer.writerow([len(text), len(pattern), 'Boyer-Moore', bm_average_time])
-                writer.writerow([len(text), len(pattern), 'Brute Force', bf_average_time])
+            results.append([text_length, len(pattern), 'KMP', *kmp_times])
+            results.append([text_length, len(pattern), 'Boyer-Moore', *bm_times])
+            results.append([text_length, len(pattern), 'Brute Force', *bf_times])
 
-
-
+    df = pd.DataFrame(results, columns=['Text Length', 'Pattern Length', 'Algorithm', 'Average Time (s)', 'Min Time (s)', 'Max Time (s)', 'Std Dev (s)'])
+    df.to_csv('results.csv', index=False)
