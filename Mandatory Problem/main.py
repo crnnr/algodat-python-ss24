@@ -154,18 +154,18 @@ def generate_search_text(num_paragraphs, pattern, paragraph_length=1000, insert=
         return ' '.join(words)
     return text
 
-def average_timings(function, text, pattern, repetitions=100):
-    timings = []
-    start_time = time()
+def average_timings(function, text, pattern, repetitions):
+    timings = [] 
     for _ in range(repetitions):
+        start_time = time()
         function(text, pattern)
-    elapsed = time() - start_time
-    timings.append(elapsed)
+        elapsed = time() - start_time
+        timings.append(elapsed)
+
     average_time = np.mean(timings)
     min_time = np.min(timings)
     max_time = np.max(timings)
-    std_dev = np.std(timings)
-    return average_time, min_time, max_time, std_dev
+    return average_time, min_time, max_time
 
 if __name__ == "__main__":
     num_paragraphs_list = [10, 50, 100, 500, 1000, 5000, 10000, 50000]
