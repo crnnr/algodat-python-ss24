@@ -17,6 +17,16 @@ random.seed(0)
 Faker.seed(0)
 
 def compute_prefix_function(pattern):
+    """
+    Compute the prefix function for a given pattern.
+
+    Args:
+        pattern (str): The pattern for which to compute the prefix function.
+
+    Returns:
+        list: The prefix function values for each position in the pattern.
+
+    """
     m = len(pattern)
     lps = [0] * m
     length = 0
@@ -35,6 +45,16 @@ def compute_prefix_function(pattern):
     return lps
 
 def KMP(text, pattern):
+    """
+    Implements the Knuth-Morris-Pratt (KMP) algorithm to find all occurrences of a pattern in a given text.
+
+    Args:
+        text (str): The text to search for occurrences of the pattern.
+        pattern (str): The pattern to search for in the text.
+
+    Returns:
+        list: A list of indices where the pattern occurs in the text. If the pattern is not found, an empty list is returned.
+    """
     prefix = compute_prefix_function(pattern)
     result = []
     j = 0
@@ -49,6 +69,18 @@ def KMP(text, pattern):
     return result
 
 def create_bad_match_table(pattern):
+    """
+    Creates a bad match table for the given pattern.
+
+    Args:
+        pattern (str): The pattern to create the bad match table for.
+
+    Returns:
+        dict: The bad match table, where the keys are characters in the pattern
+              and the values are the maximum number of positions to shift the pattern
+              when a mismatch occurs.
+
+    """
     table = {}
     pattern_length = len(pattern)
     for i in range(pattern_length):
@@ -56,6 +88,16 @@ def create_bad_match_table(pattern):
     return table
 
 def boyer_moore(text, pattern):
+    """
+    Performs the Boyer-Moore algorithm to search for a pattern in a given text.
+
+    Args:
+        text (str): The text to search in.
+        pattern (str): The pattern to search for.
+
+    Returns:
+        int: The index of the first occurrence of the pattern in the text, or -1 if not found.
+    """
     table = create_bad_match_table(pattern)
     pattern_length = len(pattern)
     text_length = len(text)
@@ -71,6 +113,16 @@ def boyer_moore(text, pattern):
     return -1
 
 def brute_force(text, pattern):
+    """
+    Searches for the first occurrence of a pattern in a given text using the brute force algorithm.
+
+    Args:
+        text (str): The text to search in.
+        pattern (str): The pattern to search for.
+
+    Returns:
+        int: The index of the first occurrence of the pattern in the text, or -1 if the pattern is not found.
+    """
     text_length = len(text)
     pattern_length = len(pattern)
     for i in range(text_length - pattern_length + 1):
