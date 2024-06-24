@@ -6,6 +6,7 @@ import csv
 import datetime
 import numpy as np
 import pandas as pd
+from time import time
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -98,6 +99,20 @@ def average_timings(function, text, pattern, repetitions=100):
         function(text, pattern)
         elapsed = time.perf_counter() - start_time
         timings.append(elapsed)
+    average_time = np.mean(timings)
+    min_time = np.min(timings)
+    max_time = np.max(timings)
+    std_dev = np.std(timings)
+    return average_time, min_time, max_time, std_dev
+
+def average_timings2(function, text, pattern, repetitoins=100):
+    timings = []
+    #Return the time in seconds since the January 1, 1970, 00:00:00, GMT.
+    start_time = time()
+    for _ in range(repetitoins):
+        function(text, pattern)
+    elapsed = time() - start_time
+    timings.append(elapsed)
     average_time = np.mean(timings)
     min_time = np.min(timings)
     max_time = np.max(timings)
