@@ -92,20 +92,7 @@ def generate_search_text(num_paragraphs, pattern, insert=True):
         return ' '.join(words)
     return text
 
-def average_timings(function, text, pattern, repetitions=100):
-    timings = []
-    for _ in range(repetitions):
-        start_time = time.perf_counter()
-        function(text, pattern)
-        elapsed = time.perf_counter() - start_time
-        timings.append(elapsed)
-    average_time = np.mean(timings)
-    min_time = np.min(timings)
-    max_time = np.max(timings)
-    std_dev = np.std(timings)
-    return average_time, min_time, max_time, std_dev
-
-def average_timings2(function, text, pattern, repetitoins=100):
+def average_timings(function, text, pattern, repetitoins=100):
     timings = []
     #Return the time in seconds since the January 1, 1970, 00:00:00, GMT.
     start_time = time()
@@ -123,7 +110,7 @@ if __name__ == "__main__":
     num_paragraphs_list = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000]
     pattern_lengths = [len(searchword), int(len(searchword)/2), int(len(searchword)/4), int(len(searchword)/8), len(three_word_pattern)]
 
-    repetitions = 100
+    repetitions = 10
 
     results = []
 
