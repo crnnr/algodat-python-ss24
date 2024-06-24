@@ -17,6 +17,16 @@ random.seed(0)
 Faker.seed(0)
 
 def compute_prefix_function(pattern):
+    """
+    Compute the prefix function for a given pattern.
+
+    Args:
+        pattern (str): The pattern for which to compute the prefix function.
+
+    Returns:
+        list: The prefix function values for each position in the pattern.
+
+    """
     m = len(pattern)
     lps = [0] * m
     length = 0
@@ -35,6 +45,16 @@ def compute_prefix_function(pattern):
     return lps
 
 def KMP(text, pattern):
+    """
+    Implements the Knuth-Morris-Pratt (KMP) algorithm to find all occurrences of a pattern in a given text.
+
+    Args:
+        text (str): The text to search for occurrences of the pattern.
+        pattern (str): The pattern to search for in the text.
+
+    Returns:
+        list: A list of indices where the pattern occurs in the text. If the pattern is not found, an empty list is returned.
+    """
     prefix = compute_prefix_function(pattern)
     result = []
     j = 0
@@ -49,6 +69,18 @@ def KMP(text, pattern):
     return result
 
 def create_bad_match_table(pattern):
+    """
+    Creates a bad match table for the given pattern.
+
+    Args:
+        pattern (str): The pattern to create the bad match table for.
+
+    Returns:
+        dict: The bad match table, where the keys are characters in the pattern
+              and the values are the maximum number of positions to shift the pattern
+              when a mismatch occurs.
+
+    """
     table = {}
     pattern_length = len(pattern)
     for i in range(pattern_length):
@@ -56,6 +88,16 @@ def create_bad_match_table(pattern):
     return table
 
 def boyer_moore(text, pattern):
+    """
+    Performs the Boyer-Moore algorithm to search for a pattern in a given text.
+
+    Args:
+        text (str): The text to search in.
+        pattern (str): The pattern to search for.
+
+    Returns:
+        int: The index of the first occurrence of the pattern in the text, or -1 if not found.
+    """
     table = create_bad_match_table(pattern)
     pattern_length = len(pattern)
     text_length = len(text)
@@ -71,6 +113,16 @@ def boyer_moore(text, pattern):
     return -1
 
 def brute_force(text, pattern):
+    """
+    Searches for the first occurrence of a pattern in a given text using the brute force algorithm.
+
+    Args:
+        text (str): The text to search in.
+        pattern (str): The pattern to search for.
+
+    Returns:
+        int: The index of the first occurrence of the pattern in the text, or -1 if the pattern is not found.
+    """
     text_length = len(text)
     pattern_length = len(pattern)
     for i in range(text_length - pattern_length + 1):
@@ -82,6 +134,18 @@ def brute_force(text, pattern):
     return -1
 
 def generate_search_text(num_paragraphs, pattern, insert=True):
+    """
+    Generate search text with optional pattern insertion.
+
+    Args:
+        num_paragraphs (int): The number of paragraphs to generate.
+        pattern (str): The pattern to insert into the text.
+        insert (bool, optional): Whether to insert the pattern into the text. Defaults to True.
+
+    Returns:
+        str: The generated search text.
+
+    """
     fake = Faker()
     paragraphs = [fake.paragraph() for _ in range(num_paragraphs)]
     text = ' '.join(paragraphs)
@@ -92,11 +156,23 @@ def generate_search_text(num_paragraphs, pattern, insert=True):
         return ' '.join(words)
     return text
 
-def average_timings(function, text, pattern, repetitoins=100):
+def average_timings(function, text, pattern, repetitions=100):
+    """
+    Calculates the average timings of a given function by executing it multiple times.
+
+    Parameters:
+    function (callable): The function to be timed.
+    text (str): The text to be passed as an argument to the function.
+    pattern (str): The pattern to be passed as an argument to the function.
+    repetitions (int, optional): The number of times the function should be executed. Default is 100.
+
+    Returns:
+    tuple: A tuple containing the average time, minimum time, maximum time, and standard deviation of the timings.
+
+    """
     timings = []
-    #Return the time in seconds since the January 1, 1970, 00:00:00, GMT.
     start_time = time()
-    for _ in range(repetitoins):
+    for _ in range(repetitions):
         function(text, pattern)
     elapsed = time() - start_time
     timings.append(elapsed)
@@ -110,7 +186,7 @@ if __name__ == "__main__":
     num_paragraphs_list = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000]
     pattern_lengths = [len(searchword), int(len(searchword)/2), int(len(searchword)/4), int(len(searchword)/8), len(three_word_pattern)]
 
-    repetitions = 10
+    repetitions = 100
 
     results = []
 
