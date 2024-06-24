@@ -168,7 +168,7 @@ def average_timings(function, text, pattern, repetitions=100):
     return average_time, min_time, max_time, std_dev
 
 if __name__ == "__main__":
-    num_paragraphs_list = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000]
+    num_paragraphs_list = [10, 50, 100, 500, 1000, 5000, 10000, 50000]
     pattern_lengths = [len(searchword), int(len(searchword)/2), int(len(searchword)/4), int(len(searchword)/8), len(three_word_pattern)]
 
     repetitions = 100
