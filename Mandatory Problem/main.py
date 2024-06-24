@@ -134,6 +134,16 @@ def brute_force(text, pattern):
     return -1
 
 def generate_fixed_length_paragraph(length):
+    """
+    Generates a paragraph of fixed length.
+
+    Parameters:
+    length (int): The desired length of the paragraph.
+
+    Returns:
+    str: The generated paragraph.
+
+    """
     fake = Faker()
     paragraph = ''
     while len(paragraph) < length:
@@ -145,6 +155,18 @@ def generate_fixed_length_paragraph(length):
     return paragraph.strip()
 
 def generate_search_text(num_paragraphs, pattern, paragraph_length=1000, insert=True):
+    """
+    Generate search text with specified number of paragraphs, pattern, and paragraph length.
+
+    Args:
+        num_paragraphs (int): The number of paragraphs to generate.
+        pattern (str): The pattern to insert into the text.
+        paragraph_length (int, optional): The length of each paragraph. Defaults to 1000.
+        insert (bool, optional): Whether to insert the pattern into the text. Defaults to True.
+
+    Returns:
+        str: The generated search text.
+    """
     paragraphs = [generate_fixed_length_paragraph(paragraph_length) for _ in range(num_paragraphs)]
     text = ' '.join(paragraphs)
     if insert:
@@ -155,6 +177,18 @@ def generate_search_text(num_paragraphs, pattern, paragraph_length=1000, insert=
     return text
 
 def average_timings(function, text, pattern, repetitions):
+    """
+    Calculates the average, minimum, and maximum time taken by a given function to execute.
+
+    Parameters:
+    function (callable): The function to be timed.
+    text (str): The text input for the function.
+    pattern (str): The pattern input for the function.
+    repetitions (int): The number of times to repeat the timing.
+
+    Returns:
+    tuple: A tuple containing the average time, minimum time, and maximum time taken by the function.
+    """
     timings = [] 
     for _ in range(repetitions):
         start_time = time()
@@ -168,32 +202,39 @@ def average_timings(function, text, pattern, repetitions):
     return average_time, min_time, max_time
 
 if __name__ == "__main__":
+    # Test the algorithms on different text lengths and pattern lengths
     num_paragraphs_list = [10, 50, 100, 500, 1000, 5000, 10000, 50000]
     pattern_lengths = [len(searchword), int(len(searchword)/2), int(len(searchword)/4), int(len(searchword)/8), len(three_word_pattern)]
 
+    #set the number of repetitions and paragraph length
     repetitions = 100
     paragraph_length = 1000
 
+    #store the results
     results = []
 
+    #generate the search text
     for num_paragraphs in num_paragraphs_list:
         text = generate_search_text(num_paragraphs, three_word_pattern, paragraph_length, insert=True)
         text_length = len(text)
         logging.info(f"Text length: {text_length}")
-        
+
+        #
         for pattern_length in pattern_lengths:
             if pattern_length == len(three_word_pattern):
                 pattern = three_word_pattern
             else:
                 pattern = searchword[:pattern_length]
 
+            #calculate the timings for each algorithm
             kmp_times = average_timings(KMP, text, pattern, repetitions)
             bm_times = average_timings(boyer_moore, text, pattern, repetitions)
             bf_times = average_timings(brute_force, text, pattern, repetitions)
 
+            #append the results to the list
             results.append([text_length, len(pattern), 'KMP', *kmp_times])
             results.append([text_length, len(pattern), 'Boyer-Moore', *bm_times])
             results.append([text_length, len(pattern), 'Brute Force', *bf_times])
-
+    #save the results to a csv file
     df = pd.DataFrame(results, columns=['Text Length', 'Pattern Length', 'Algorithm', 'Average Time (s)', 'Min Time (s)', 'Max Time (s)', 'Std Dev (s)'])
     df.to_csv('results.csv', index=False)
