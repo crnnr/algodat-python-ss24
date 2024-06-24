@@ -1,33 +1,18 @@
+from faker import Faker
+import textwrap
 
-class Basic:
-    def __init__(self):
-        pass
+def generate_fixed_length_paragraph(length):
+    fake = Faker()
+    paragraph = ''
+    while len(paragraph) < length:
+        sentence = fake.sentence()
+        if len(paragraph) + len(sentence) + 1 > length:
+            paragraph += sentence[:length - len(paragraph) - 1] + '.'
+            break
+        paragraph += sentence + ' '
+    return paragraph.strip()
 
-    def hello(self):
-        print('Hello, World!')
-        
-class Advanced(Basic):
-    def __init__(self):
-        super().__init__()
-
-    def hello(self):
-        print('Hello, World! from Advanced')
-
-def main():
-    basic = Basic()
-    basic.hello()
-
-    advanced = Advanced()
-    advanced.hello()
-
-if __name__ == '__main__':
-    main()
-
-
-
-''' def main():
-    pass
-    print('Hello, World!')
-
-if __name__ == '__main__':
-    main()''' 
+if __name__ == "__main__":
+    fixed_length_paragraph = generate_fixed_length_paragraph(1000)
+    print(fixed_length_paragraph)
+    print("Length of paragraph:", len(fixed_length_paragraph))

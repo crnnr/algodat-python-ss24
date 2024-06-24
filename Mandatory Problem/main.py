@@ -81,9 +81,19 @@ def brute_force(text, pattern):
             return i
     return -1
 
-def generate_search_text(num_paragraphs, pattern, insert=True):
+def generate_fixed_length_paragraph(length):
     fake = Faker()
-    paragraphs = [fake.paragraph() for _ in range(num_paragraphs)]
+    paragraph = ''
+    while len(paragraph) < length:
+        sentence = fake.sentence()
+        if len(paragraph) + len(sentence) + 1 > length:
+            paragraph += sentence[:length - len(paragraph) - 1] + '.'
+            break
+        paragraph += sentence + ' '
+    return paragraph.strip()
+
+def generate_search_text(num_paragraphs, pattern, paragraph_length=1000, insert=True):
+    paragraphs = [generate_fixed_length_paragraph(paragraph_length) for _ in range(num_paragraphs)]
     text = ' '.join(paragraphs)
     if insert:
         words = text.split()
@@ -92,11 +102,10 @@ def generate_search_text(num_paragraphs, pattern, insert=True):
         return ' '.join(words)
     return text
 
-def average_timings(function, text, pattern, repetitoins=100):
+def average_timings(function, text, pattern, repetitions=100):
     timings = []
-    #Return the time in seconds since the January 1, 1970, 00:00:00, GMT.
     start_time = time()
-    for _ in range(repetitoins):
+    for _ in range(repetitions):
         function(text, pattern)
     elapsed = time() - start_time
     timings.append(elapsed)
@@ -110,12 +119,13 @@ if __name__ == "__main__":
     num_paragraphs_list = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000]
     pattern_lengths = [len(searchword), int(len(searchword)/2), int(len(searchword)/4), int(len(searchword)/8), len(three_word_pattern)]
 
-    repetitions = 10
+    repetitions = 100
+    paragraph_length = 1000
 
     results = []
 
     for num_paragraphs in num_paragraphs_list:
-        text = generate_search_text(num_paragraphs, three_word_pattern, insert=True)
+        text = generate_search_text(num_paragraphs, three_word_pattern, paragraph_length, insert=True)
         text_length = len(text)
         logging.info(f"Text length: {text_length}")
         
