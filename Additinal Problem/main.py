@@ -78,15 +78,28 @@ def tree_to_dot(tree, graph=None, parent_name=None, edge_label=""):
 if __name__ == "__main__":
     # Dataset from 12.5 because why not
     data = [
-        ['sunny', 'warm', 'normal', 'strong', 'warm', 'same', '+'],
-        ['sunny', 'warm', 'high', 'strong', 'warm', 'same', '+'],
-        ['rainy', 'cold', 'high', 'strong', 'warm', 'change', '-'],
-        ['sunny', 'warm', 'high', 'strong', 'cool', 'change', '+'],
-        ['sunny', 'warm', 'normal', 'weak', 'warm', 'same', '-']
+        ['high', 'none', 'normal', 'low', 'weak', 'False'],
+        ['low', 'strong', 'high', 'middle', 'strong', 'True'],
+        ['middle', 'none', 'high', 'middle', 'weak', 'True'],
+        ['low', 'strong', 'high', 'strong', 'strong',  'True'],
+        ['low', 'strong', 'normal', 'high', 'weak', 'True'],
+        ['middle', 'none', 'high', 'middle', 'weak', 'True'],
+        ['high', 'none', 'normal', 'low', 'weak', 'False'],
+        ['middle', 'none', 'high', 'middle', 'weak', 'True'],
+        ['high', 'strong', 'normal', 'high', 'weak', 'True'],
+        ['low', 'strong', 'normal', 'middle', 'weak', 'True'],
+        ['high', 'none', 'normal', 'middle', 'strong', 'False'],
+        ['middle', 'strong', 'high', 'middle', 'strong', 'True'],
+        ['low', 'none', 'normal', 'middle', 'weak', 'False'],
+        ['high', 'none', 'high', 'high', 'weak', 'False'],
+        ['low', 'none', 'normal', 'low', 'weak', 'False'],
+        ['middle', 'none', 'high', 'middle', 'weak', 'True'],
+        ['low', 'strong', 'high', 'strong', 'strong', 'True'],
+        ['high', 'weak', 'normal', 'low', 'weak', 'False'],
     ]
     
     # Convert to pandas DataFrame for easier handling
-    columns = ['sky', 'air', 'humid', 'wind', 'water', 'forecast', 'attack']
+    columns = ['temperature', 'wind', 'probability_rain', 'humid', 'water', 'take_umbrella',]
     df = pd.DataFrame(data, columns=columns)
     
     # Encode categorical variables
