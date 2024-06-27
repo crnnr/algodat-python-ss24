@@ -1,9 +1,7 @@
 import numpy as np
 import pandas as pd
-import pydotplus
-from graphviz import Source
 import matplotlib.pyplot as plt
-from sklearn.tree import DecisionTreeClassifier, plot_tree
+import networkx as nx
 from sklearn.preprocessing import LabelEncoder
 
 def plurality_val(examples):
@@ -47,36 +45,66 @@ def dt_learning(examples, attributes, parent_examples=None):
             tree[best_attribute][value] = subtree
         return tree
 
-def tree_to_dot(tree, graph=None, parent_name=None, edge_label=""):
+def plot_tree(tree, feature_names, class_names):
     """
-    Convert the tree dictionary to DOT format for visualization.
+    Plot the decision tree using networkx and matplotlib.
     """
-    if graph is None:
-        graph = pydotplus.Dot(graph_type='digraph')
-    
-    if isinstance(tree, dict):
-        for attribute, branches in tree.items():
-            node_name = f"attribute_{attribute}"
-            node = pydotplus.Node(node_name, label=f"Attribute {attribute}")
-            graph.add_node(node)
-            if parent_name:
-                edge = pydotplus.Edge(parent_name, node_name, label=edge_label)
-                graph.add_edge(edge)
-            for value, subtree in branches.items():
-                tree_to_dot(subtree, graph, node_name, f"Value {value}")
+    def add_edges(tree, graph, parent=None, label=''):
+        if isinstance(tree, dict):
+            for attribute, branches in tree.items():
+                node_label = feature_names[attribute]
+                node_name = f"{node_label}\n(Attribute {attribute})"
+                graph.add_node(node_name)
+                if parent:
+                    graph.add_edge(parent, node_name, label=label)
+                for value, subtree in branches.items():
+                    add_edges(subtree, graph, node_name, str(value))
+        else:
+            class_name = class_names[tree]
+            leaf_name = f"Class: {class_name}"
+            graph.add_node(leaf_name)
+            if parent:
+                graph.add_edge(parent, leaf_name, label=label)
+
+    graph = nx.DiGraph()
+    add_edges(tree, graph)
+
+    pos = hierarchy_pos(graph, next(iter(graph.nodes)))
+    plt.figure(figsize=(12, 8))
+    nx.draw(graph, pos, with_labels=True, node_size=3000, node_color="lightblue", font_size=10, font_weight="bold", arrows=True)
+    edge_labels = nx.get_edge_attributes(graph, 'label')
+    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_color='red')
+    plt.show()
+
+def hierarchy_pos(G, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5):
+    """
+    If the graph is a tree, this will return the positions to plot this in a hierarchical layout.
+    """
+    pos = _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
+    return pos
+
+def _hierarchy_pos(G, root, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5, pos=None, parent=None, parsed=[]):
+    if pos is None:
+        pos = {root: (xcenter, vert_loc)}
     else:
-        leaf_name = f"class_{tree}"
-        leaf = pydotplus.Node(leaf_name, label=f"Class {tree}", shape='box')
-        graph.add_node(leaf)
-        if parent_name:
-            edge = pydotplus.Edge(parent_name, leaf_name, label=edge_label)
-            graph.add_edge(edge)
+        pos[root] = (xcenter, vert_loc)
     
-    return graph
+    children = list(G.neighbors(root))
+    if not isinstance(G, nx.DiGraph) and parent is not None:
+        children.remove(parent)  
+    
+    if len(children) != 0:
+        dx = width / len(children) 
+        nextx = xcenter - width / 2 - dx / 2
+        for child in children:
+            nextx += dx
+            pos = _hierarchy_pos(G, child, width=dx, vert_gap=vert_gap, vert_loc=vert_loc - vert_gap, xcenter=nextx, pos=pos, parent=root, parsed=parsed)
+    
+    return pos
 
 # Example usage
 if __name__ == "__main__":
-    # Dataset from 12.5 because why not
+    # Dataset
     data = [
         ['high', 'none', 'normal', 'low', 'weak', 'False'],
         ['low', 'strong', 'high', 'middle', 'strong', 'True'],
@@ -99,7 +127,7 @@ if __name__ == "__main__":
     ]
     
     # Convert to pandas DataFrame for easier handling
-    columns = ['temperature', 'wind', 'probability_rain', 'humid', 'water', 'take_umbrella',]
+    columns = ['temperature', 'wind', 'probability_rain', 'humid', 'water', 'take_umbrella']
     df = pd.DataFrame(data, columns=columns)
     
     # Encode categorical variables
@@ -110,29 +138,12 @@ if __name__ == "__main__":
     # Convert back to list of lists
     examples = df.values.tolist()
     
-    # Separate features and labels for sklearn DecisionTreeClassifier
-    X = df.iloc[:, :-1].values
-    y = df.iloc[:, -1].values
-    
-    # Train the decision tree
-    clf = DecisionTreeClassifier(criterion='entropy')  # You can use 'gini' or 'entropy'
-    clf.fit(X, y)
-    
-    # Visualize the sklearn tree
-    plt.figure(figsize=(12, 8))
-    plot_tree(clf, filled=True, feature_names=columns[:-1], class_names=le.classes_)
-    plt.show()
-    
     # Custom decision tree
-    attributes = list(range(X.shape[1]))  # Indices of the attributes in examples
+    attributes = list(range(df.shape[1] - 1))  # Indices of the attributes in examples
     tree = dt_learning(examples, attributes)
     print(tree)
     
-    # Visualize the custom tree
-    dot_graph = tree_to_dot(tree)
-    dot_graph_str = dot_graph.to_string()
-    print("Generated DOT format:\n", dot_graph_str)  # Debugging: print the generated DOT format
-
-    dot_graph.write("decision_tree.dot", format='dot')
-    graphviz_source = Source.from_file("decision_tree.dot")
-    graphviz_source.render("decision_tree", format='png', cleanup=True)
+    # Plot the custom tree
+    feature_names = columns[:-1]
+    class_names = le.classes_
+    plot_tree(tree, feature_names, class_names)
