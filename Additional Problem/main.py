@@ -24,11 +24,14 @@ def importance(attribute, examples):
     values, counts = np.unique([example[attribute] for example in examples], return_counts=True)
     weighted_entropy_after = sum((counts[i] / counts.sum()) * entropy([example for example in examples if example[attribute] == values[i]]) for i in range(len(values)))
     
-    return entropy_before - weighted_entropy_after
+    information_gain = entropy_before - weighted_entropy_after
+    print(f"Attribute: {attribute}, Information Gain: {information_gain:.4f}")
+    
+    return information_gain
 
 def dt_learning(examples, attributes, parent_examples=None):
     """
-    Decision tree learning algorithm.
+    Decision tree learning algorithm with debugging information.
     """
     if examples == []:
         return plurality_val(parent_examples)
@@ -38,9 +41,11 @@ def dt_learning(examples, attributes, parent_examples=None):
         return plurality_val(examples)
     else:
         best_attribute = max(attributes, key=lambda attr: importance(attr, examples))
+        print(f"Best attribute selected: {best_attribute}")
         tree = {best_attribute: {}}
         for value in [0, 1]:  # Binary attributes assumed to be 0 or 1
             exs = [example for example in examples if example[best_attribute] == value]
+            print(f"Subtree for attribute {best_attribute} = {value}: {len(exs)} examples")
             subtree = dt_learning(exs, [attr for attr in attributes if attr != best_attribute], examples)
             tree[best_attribute][value] = subtree
         return tree
@@ -49,58 +54,49 @@ def plot_tree(tree, feature_names, class_names):
     """
     Plot the decision tree using networkx and matplotlib.
     """
-    def add_edges(tree, graph, parent=None, label=''):
+    def add_edges(tree, graph, parent=None, label='', depth=0, pos={}, level_widths=None):
+        if level_widths is None:
+            level_widths = {}
         if isinstance(tree, dict):
             for attribute, branches in tree.items():
                 node_label = feature_names[attribute]
                 node_name = f"{node_label}\n(Attribute {attribute})"
+                if node_name not in pos:
+                    width = level_widths.get(depth, 0)
+                    pos[node_name] = (width, -depth)
+                    level_widths[depth] = width + 1
                 graph.add_node(node_name)
                 if parent:
                     graph.add_edge(parent, node_name, label=label)
                 for value, subtree in branches.items():
-                    add_edges(subtree, graph, node_name, str(value))
+                    add_edges(subtree, graph, node_name, str(value), depth + 1, pos, level_widths)
         else:
             class_name = class_names[tree]
             leaf_name = f"Class: {class_name}"
+            if leaf_name not in pos:
+                width = level_widths.get(depth, 0)
+                pos[leaf_name] = (width, -depth)
+                level_widths[depth] = width + 1
             graph.add_node(leaf_name)
             if parent:
                 graph.add_edge(parent, leaf_name, label=label)
+        return pos, level_widths
 
     graph = nx.DiGraph()
-    add_edges(tree, graph)
+    pos, level_widths = add_edges(tree, graph)
 
-    pos = hierarchy_pos(graph, next(iter(graph.nodes)))
+    # Adjust positions to improve layout
+    x_positions = [pos[node][0] for node in pos]
+    y_positions = [pos[node][1] for node in pos]
+    width_range = max(x_positions) - min(x_positions)
+    height_range = max(y_positions) - min(y_positions)
+    pos = {node: ((x - min(x_positions)) / width_range, (y - min(y_positions)) / height_range) for node, (x, y) in pos.items()}
+
     plt.figure(figsize=(12, 8))
-    nx.draw(graph, pos, with_labels=True, node_size=3000, node_color="lightblue", font_size=10, font_weight="bold", arrows=True)
+    nx.draw(graph, pos, with_labels=True, node_size=3000, node_color="lightblue", font_size=10, font_weight="bold", arrows=False)
     edge_labels = nx.get_edge_attributes(graph, 'label')
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_color='red')
     plt.show()
-
-def hierarchy_pos(G, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5):
-    """
-    If the graph is a tree, this will return the positions to plot this in a hierarchical layout.
-    """
-    pos = _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
-    return pos
-
-def _hierarchy_pos(G, root, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5, pos=None, parent=None, parsed=[]):
-    if pos is None:
-        pos = {root: (xcenter, vert_loc)}
-    else:
-        pos[root] = (xcenter, vert_loc)
-    
-    children = list(G.neighbors(root))
-    if not isinstance(G, nx.DiGraph) and parent is not None:
-        children.remove(parent)  
-    
-    if len(children) != 0:
-        dx = width / len(children) 
-        nextx = xcenter - width / 2 - dx / 2
-        for child in children:
-            nextx += dx
-            pos = _hierarchy_pos(G, child, width=dx, vert_gap=vert_gap, vert_loc=vert_loc - vert_gap, xcenter=nextx, pos=pos, parent=root, parsed=parsed)
-    
-    return pos
 
 # Example usage
 if __name__ == "__main__":
