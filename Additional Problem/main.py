@@ -43,7 +43,7 @@ def dt_learning(examples, attributes, parent_examples=None):
         best_attribute = max(attributes, key=lambda attr: importance(attr, examples))
         print(f"Best attribute selected: {best_attribute}")
         tree = {best_attribute: {}}
-        for value in [0, 1]:  # Binary attributes assumed to be 0 or 1
+        for value in [0, 1]:
             exs = [example for example in examples if example[best_attribute] == value]
             print(f"Subtree for attribute {best_attribute} = {value}: {len(exs)} examples")
             subtree = dt_learning(exs, [attr for attr in attributes if attr != best_attribute], examples)
@@ -85,7 +85,6 @@ def plot_tree(tree, feature_names, class_names):
     graph = nx.DiGraph()
     pos, level_widths = add_edges(tree, graph)
 
-    # Adjust positions to improve layout
     x_positions = [pos[node][0] for node in pos]
     y_positions = [pos[node][1] for node in pos]
     width_range = max(x_positions) - min(x_positions)
@@ -98,7 +97,6 @@ def plot_tree(tree, feature_names, class_names):
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_color='red')
     plt.show()
 
-# Example usage
 if __name__ == "__main__":
     # Dataset
     data = [
@@ -122,24 +120,19 @@ if __name__ == "__main__":
         ['high', 'weak', 'normal', 'low', 'weak', 'False'],
     ]
     
-    # Convert to pandas DataFrame for easier handling
     columns = ['temperature', 'wind', 'probability_rain', 'humid', 'water', 'take_umbrella']
     df = pd.DataFrame(data, columns=columns)
     
-    # Encode categorical variables
     le = LabelEncoder()
     for col in df.columns:
         df[col] = le.fit_transform(df[col])
-    
-    # Convert back to list of lists
+
     examples = df.values.tolist()
     
-    # Custom decision tree
-    attributes = list(range(df.shape[1] - 1))  # Indices of the attributes in examples
+    attributes = list(range(df.shape[1] - 1))
     tree = dt_learning(examples, attributes)
     print(tree)
     
-    # Plot the custom tree
     feature_names = columns[:-1]
     class_names = le.classes_
     plot_tree(tree, feature_names, class_names)

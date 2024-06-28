@@ -152,7 +152,7 @@ def generate_fixed_length_paragraph(length):
         paragraph += sentence + ' '
     return paragraph.strip()
 
-def generate_search_text(num_paragraphs, pattern, paragraph_length=1000, insert=True):
+def generate_search_text(num_paragraphs, pattern, paragraph_length, insert=True):
     """
     Generate search text with specified number of paragraphs, pattern, and paragraph length.
 
@@ -200,39 +200,34 @@ def average_timings(function, text, pattern, repetitions):
     return average_time, min_time, max_time
 
 if __name__ == "__main__":
-    # Test the algorithms on different text lengths and pattern lengths
+
     num_paragraphs_list = [10, 50, 100, 500, 1000, 5000, 10000, 50000]
     pattern_lengths = [len(searchword), int(len(searchword)/2), int(len(searchword)/4), int(len(searchword)/8), len(three_word_pattern)]
 
-    #set the number of repetitions and paragraph length
     repetitions = 100
-    paragraph_length = 1000
+    paragraph_length = 200
 
-    #store the results
     results = []
 
-    #generate the search text
     for num_paragraphs in num_paragraphs_list:
         text = generate_search_text(num_paragraphs, three_word_pattern, paragraph_length, insert=True)
         text_length = len(text)
         logging.info(f"Text length: {text_length}")
 
-        #
+        
         for pattern_length in pattern_lengths:
             if pattern_length == len(three_word_pattern):
                 pattern = three_word_pattern
             else:
                 pattern = searchword[:pattern_length]
 
-            #calculate the timings for each algorithm
             kmp_times = average_timings(KMP, text, pattern, repetitions)
             bm_times = average_timings(boyer_moore, text, pattern, repetitions)
             bf_times = average_timings(brute_force, text, pattern, repetitions)
 
-            #append the results to the list
             results.append([text_length, len(pattern), 'KMP', *kmp_times])
             results.append([text_length, len(pattern), 'Boyer-Moore', *bm_times])
             results.append([text_length, len(pattern), 'Brute Force', *bf_times])
-    #save the results to a csv file
+
     df = pd.DataFrame(results, columns=['Text Length', 'Pattern Length', 'Algorithm', 'Average Time (s)', 'Min Time (s)', 'Max Time (s)', 'Std Dev (s)'])
     df.to_csv('results.csv', index=False)
