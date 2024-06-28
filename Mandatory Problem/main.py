@@ -229,5 +229,5 @@ if __name__ == "__main__":
             results.append([text_length, len(pattern), 'Boyer-Moore', *bm_times])
             results.append([text_length, len(pattern), 'Brute Force', *bf_times])
 
-    df = pd.DataFrame(results, columns=['Text Length', 'Pattern Length', 'Algorithm', 'Average Time (s)', 'Min Time (s)', 'Max Time (s)', 'Std Dev (s)'])
+    df = pd.DataFrame(results, columns=['Text Length', 'Pattern Length', 'Algorithm', 'Average Time (s)', 'Min Time (s)', 'Max Time (s)'])
     df.to_csv('results.csv', index=False)
